@@ -5,4 +5,7 @@ Opcode.pm
 Opcode.xs
 t/opcode.t
 t/ops.t
+t/safe1.t
+t/safe2.t
+lib/Safe.pm
 lib/ops.pm

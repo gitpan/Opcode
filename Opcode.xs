@@ -215,7 +215,8 @@ opmask_addlocal(opset, op_mask_buf) /* Localise op_mask then opmask_add() */
 {
     char *orig_op_mask = op_mask;
     SAVEPPTR(op_mask);
-    /* save_destructor(warn,"op_mask restored"); */
+    if (opcode_debug >= 2)
+	save_destructor((void*)warn,"op_mask restored");
     op_mask = &op_mask_buf[0];
     if (orig_op_mask)
 	Copy(orig_op_mask, op_mask, maxo, char);
@@ -245,6 +246,7 @@ _safe_call_sv(package, mask, codesv)
     SV *	codesv
     PPCODE:
     char op_mask_buf[OP_MASK_BUF_SIZE];
+    GV *gv;
 
     ENTER;
 
@@ -253,9 +255,16 @@ _safe_call_sv(package, mask, codesv)
     save_aptr(&endav);
     endav = (AV*)sv_2mortal((SV*)newAV()); /* ignore END blocks for now	*/
 
-    save_hptr(&defstash);
+    save_hptr(&defstash);		/* save current default stack	*/
+    /* the assignment to global defstash changes our sense of 'main'	*/
     defstash = gv_stashpv(package, GV_ADDWARN); /* should exist already	*/
-    GvHV(gv_fetchpv("main::", TRUE, SVt_PVHV)) = defstash;
+
+    /* defstash must itself contain a main:: so we'll add that now	*/
+    /* take care with the ref counts (was cause of long standing bug)	*/
+    /* XXX I'm still not sure if this is right, GV_ADDWARN should warn!	*/
+    gv = gv_fetchpv("main::", GV_ADDWARN, SVt_PVHV);
+    sv_free((SV*)GvHV(gv));
+    GvHV(gv) = (HV*)SvREFCNT_inc(defstash);
 
     PUSHMARK(sp);
     perl_call_sv(codesv, GIMME|G_EVAL|G_KEEPERR); /* use callers context */
@@ -263,7 +272,7 @@ _safe_call_sv(package, mask, codesv)
     LEAVE;
 
 
-void
+int
 verify_opset(opset, fatal = 0)
     SV *opset
     int fatal
@@ -308,7 +317,7 @@ opset_to_ops(opset, desc = 0)
 
 
 void
-ops_to_opset(...)
+opset(...)
     CODE:
     int i, j;
     SV *bitspec, *opset;
@@ -437,14 +446,15 @@ opmask_add(opset)
     if (!op_mask)
 	Newz(0, op_mask, maxo, char);
 
-int
+void
 opcodes()
-    CODE:
-    if (GIMME == G_ARRAY)
+    PPCODE:
+    if (GIMME == G_ARRAY) {
 	croak("opcodes in list context not yet implemented"); /* XXX */
-    RETVAL = maxo;
-    OUTPUT:
-    RETVAL
+    }
+    else {
+	XPUSHs(sv_2mortal(newSViv(maxo)));
+    }
 
 void
 opmask()

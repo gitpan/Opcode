@@ -1,7 +1,9 @@
+This distribution of Safe includes the Opcode module and ops pragma.
+
 The Opcode module provides functions for the manipulation of sets of
 perl opcodes, including the ability to mask (disable) sets of opcodes.
 
-An 'ops' pragma is also provided to allow you to easily disable
+An 'ops' pragma is provided to allow you to easily disable
 opcodes on the command line, e.g.,
 
 	$ perl -Mops=:default ...
@@ -9,9 +11,27 @@ opcodes on the command line, e.g.,
 	$ perl -M-ops=const -e 1
 	constant item trapped by operation mask at -e line 1.
 
-The core of this code originated from version two of the Safe module.
-It was split out for simplicity and ease of maintenance. A new version
-of the Safe module will use this Opcode module.
-
 This code could be regarded as beta release but the definition of the
 optags is not stable and should not be relied upon. Comments welcome.
+
+Recent major changes to Opcode:
+
+	ops_to_opset() renamed to opset().
+	verify_opset() added.
+	Updated pod text to be more complete and accurate.
+	Added notes about using bit vector ops on opsets.
+	Moved some opcodes around within optags.
+	Added some optags including :browse.
+	Enhanced test suite.
+
+Recent major changes to Safe:
+
+	Fixed warnings/core dumps from $safe->erase.
+	$safe->erase now also reshares *_.
+	Moved implementation over to use Opcode.
+	Greatly enhanced test suite.
+
+To do:
+
+	Safe pod text needs updating.
+	Ponder removal of (undocumented) share tracking functionality.
