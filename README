@@ -1,0 +1,17 @@
+The Opcode module provides functions for the manipulation of sets of
+perl opcodes, including the ability to mask (disable) sets of opcodes.
+
+An 'ops' pragma is also provided to allow you to easily disable
+opcodes on the command line, e.g.,
+
+	$ perl -Mops=:default ...
+
+	$ perl -M-ops=const -e 1
+	constant item trapped by operation mask at -e line 1.
+
+The core of this code originated from version two of the Safe module.
+It was split out for simplicity and ease of maintenance. A new version
+of the Safe module will use this Opcode module.
+
+This code could be regarded as beta release but the definition of the
+optags is not stable and should not be relied upon. Comments welcome.
